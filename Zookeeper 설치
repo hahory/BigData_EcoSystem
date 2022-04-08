@@ -1,0 +1,79 @@
+ zookeeper 설치
+***********************************************
+ 1. 다운로드 받고 환경 변수설정
+*************************************************
+[root@server01 ~]# cd /opt/src
+[root@server01 ~]#wget https://dlcdn.apache.org/zookeeper/zookeeper-3.8.0/apache-zookeeper-3.8.0-bin.tar.gz --no-check-certificate --no-check-certificate
+
+[root@server01 src]# tar xfz apache-zookeeper-3.8.0-bin.tar.gz
+
+[root@server01 src]# mv apache-zookeeper-3.8.0-bin ../
+[root@server01 src]# cd ..
+[root@server01 opt]# ln -s apache-zookeeper-3.8.0-bin/ zookeeper
+
+[root@server01 opt]# vi /etc/profile
+맨 아래쪽에 다음 추가...
+-----------------------------------------------------------------------
+export ZOOKEEPER_HOME=/opt/zookeeper
+export PATH=$PATH:$ZOOKEEPER_HOME/bin
+----------------------------------------------------------
+
+[root@server01 opt]# source /etc/profile
+
+
+***********************************************
+ 2. 주키퍼 설정....
+*************************************************
+[root@server01 opt]# cd /opt/zookeeper/conf/
+
+[root@server01 conf]# cp zoo_sample.cfg zoo.cfg
+
+[root@server01 conf]# vi zoo.cfg
+---------------------------------------------------------------
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/tmp/zookeeper
+clientPort=2181
+
+server.1=server01:2888:3888
+server.2=server02:2888:3888
+server.3=server03:2888:3888
+---------------------------------------------------------------
+//server01 에서
+mkdir -p /opt/tmp/zookeeper
+echo "1" > /opt/tmp/zookeeper/myid
+
+//server02 에서
+mkdir -p /opt/tmp/zookeeper
+echo "2" > /opt/tmp/zookeeper/myid
+
+//server03 에서
+mkdir -p /opt/tmp/zookeeper
+echo "3" > /opt/tmp/zookeeper/myid
+
+
+***********************************************
+3 . 주키퍼 압축파일 만들고 서버에 배포.
+*************************************************
+[root@server01 conf]#cd /opt
+// 압축파일 만들기
+[root@server01 opt]# tar cfz zookeeper.tar.gz apache-zookeeper-3.8.0-bin
+// 압축파일을 server01 -> server02 /opt 디렉토리에 전송
+[root@server01 opt]# scp zookeeper.tar.gz root@server02:/opt
+// 압축파일을 server01 -> server03 /opt 디렉토리에 전송
+[root@server01 opt]# scp zookeeper.tar.gz root@server03:/opt
+
+***********************************************
+4 . 주키퍼 실행..
+*************************************************
+## server01, 02, 03 모두 시작
+[root@server01 opt]# zkServer.sh start
+
+##상태 확인.
+[root@server01 opt]# zkServer.sh status
+
+## server01, 02, 03 모두 종료
+[root@server01 opt]# zkServer.sh stop
+
+
