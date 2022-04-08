@@ -1,0 +1,160 @@
+##########################
+#   server01 에서..
+##########################
+
+//-- 다운로드
+
+//모든 타사 응용 프로그램을이 /opt에 설치
+cd /opt/src
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz --no-check-certificate
+
+//tar xfz : gzip으로 압축 해제 + tar 풀기
+tar xfz hadoop-3.3.2.tar.gz
+
+//hadoop-3.3.2를 한단계 위 디렉터리로 옮기기(/opt/src의 한단계 위 디렉터리이므로 /opt로 옮긴다는 말)
+mv hadoop-3.3.2 ../
+//한단계 위 디렉터리 즉 /opt로 간다는 말
+cd ..
+ln -s hadoop-3.3.2/ hadoop
+
+vi /etc/profile
+-------------------------------------------------------------------
+export HADOOP_HOME=/opt/hadoop
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+export HDFS_NAMENODE_USER="root"
+export HDFS_DATANODE_USER="root"
+export HDFS_SECONDARYNAMENODE_USER="root"
+export YARN_RESOURCEMANAGER_USER="root"
+export YARN_NODEMANAGER_USER="root"
+----------------------------------------------------------------------
+
+[root@server01 opt]# source /etc/profile
+[root@server01 opt]# hadoop version
+Hadoop 3.3.2
+Source code repository git@github.com:apache/hadoop.git -r 0bcb014209e219273cb6fd4152df7df713cbac61
+Compiled by chao on 2022-02-21T18:39Z
+Compiled with protoc 3.7.1
+From source with checksum 4b40fff8bb27201ba07b6fa5651217fb
+This command was run using /opt/hadoop-3.3.2/share/hadoop/common/hadoop-common-3.3.2.jar
+
+ vi $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+-------------------------------------------------------------------
+55번째 줄..
+export JAVA_HOME=/usr/java/jdk1.8
+
+253번째줄
+export HADOOP_SECURE_PID_DIR=/opt/hadoop/pids
+-------------------------------------------------------------------
+
+vi $HADOOP_HOME/etc/hadoop/core-site.xml
+-------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+        <property>
+                <name>fs.defaultFS</name>
+                <value>hdfs://server01:9000</value>
+        </property>
+</configuration>
+-------------------------------------------------------------------
+
+
+vi $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+-------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+        <name>dfs.replication</name>
+        <value>2</value>
+</property>
+<property>
+        <name>dfs.permissions</name>
+        <value>false</value>
+</property>
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:/opt/hadoop/namenode</value>
+</property>
+<property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:/opt/hadoop/datanode</value>
+</property>
+</configuration>
+-------------------------------------------------------------------
+
+// 디렉토리 생성
+//rm은 파일은 삭제할 수 
+rm -rf $HADOOP_HOME/namenode
+mkdir $HADOOP_HOME/namenode
+chown root -R $HADOOP_HOME/namenode
+chmod 777 $HADOOP_HOME/namenode
+
+rm -rf $HADOOP_HOME/datanode
+mkdir $HADOOP_HOME/datanode
+chown root -R $HADOOP_HOME/datanode
+chmod 777 $HADOOP_HOME/datanode
+
+
+
+
+vi $HADOOP_HOME/etc/hadoop/mapred-site.xml
+-------------------------------------------------------------------
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+</property>
+
+</configuration>
+-------------------------------------------------------------------
+
+vi $HADOOP_HOME/etc/hadoop/yarn-site.xml
+-------------------------------------------------------------------
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+</property>
+<property>
+        <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
+        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+</property>
+<property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+</property>
+<property>
+        <name>yarn.application.classpath</name>
+       <value>/opt/hadoop/share/hadoop/mapreduce/*,/opt/hadoop/share/hadoop/mapreduce/lib/*,/opt/hadoop/share/hadoop/common/*,/opt/hadoop/share/hadoop/common/lib/*,/opt/hadoop/share/hadoop/hdfs/*,/opt/hadoop/share/hadoop/hdfs/lib/*,/opt/hadoop/share/hadoop/yarn/*,/opt/hadoop/share/hadoop/yarn/lib/*</value>
+</property>
+</configuration>
+-------------------------------------------------------------------
+
+
+master, worker ( server01에서만)
+vi $HADOOP_HOME/etc/hadoop/masters
+---------------------------------
+server01
+-----------------------------------
+
+vi $HADOOP_HOME/etc/hadoop/workers
+---------------------------------
+server01
+server02
+server03
+-----------------------------------
+
+
+// 기존 정보 삭제...
+rm -rf /tmp/hadoop*
+rm -rf /opt/hadoop/logs/*
+
+// 처음.. 한번만......
+hdfs namenode -format
+
+start-all.sh
