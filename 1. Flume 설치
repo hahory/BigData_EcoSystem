@@ -1,0 +1,68 @@
+//--- 위치는  /opt/src
+
+wget https://dlcdn.apache.org/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz --no-check-certificate
+
+
+[root@server02 src]# tar xfz apache-flume-1.9.0-bin.tar.gz
+[root@server02 src]# mv apache-flume-1.9.0-bin ../
+[root@server02 src]# cd ..
+[root@server02 opt]# ln -s apache-flume-1.9.0-bin/ flume
+[root@server02 opt]#
+[root@server02 opt]#
+[root@server02 opt]# ll
+합계 0
+drwxr-xr-x  7 root root 187  4월  6 11:29 apache-flume-1.9.0-bin
+lrwxrwxrwx  1 root root  23  4월  6 11:30 flume -> apache-flume-1.9.0-bin/
+drwxr-xr-x. 2 root root   6 10월 31  2018 rh
+drwxr-xr-x  2 root root  89  4월  6 11:30 src
+[root@server02 opt]#
+
+//-------------------------------------------------------
+[root@server02 opt]# vi /etc/profile
+
+하단에 다음 3줄 추가
+
+export FLUME_HOME=/opt/flume
+export PATH=$PATH:$FLUME_HOME/bin
+export CLASSPATH=$CLASSPATH:$FLUME_HOME/lib/*.jar
+ ==>> 저장후 종료
+
+[root@server02 opt]# source /etc/profile     <== 환경 설정 적용.(환경설정은 바로 적용되는 것이 아니라 시스템이 재시작되어야 적용되므로 바로 적용시키기 위해서 필요한 작업)
+
+//잘 설치되었는지 확인
+[root@server02 bin]# flume-ng version
+Flume 1.9.0
+Source code repository: https://git-wip-us.apache.org/repos/asf/flume.git
+
+vi $FLUME_HOME/conf/flume-env.sh
+------------------------------------------
+export JAVA_HOME=/usr/java/jdk1.8
+-------------------------------------------
+
+[root@server01 conf]# cd $FLUME_HOME/conf 
+[root@server01 conf]# cp flume-conf.properties.template flume-onf.properties 
+[root@server01 conf]# vi flume-conf.properties 
+----------------------------------------------------------------
+agent1.sources = source1
+agent1.sinks = sink1
+agent1.channels = channel1
+
+agent1.sources.source1.channels = channel1
+agent1.sinks.sink1.channel = channel1
+
+agent1.sources.source1.type = spooldir
+agent1.sources.source1.spoolDir = /opt/work/flume/source
+
+agent1.sinks.sink1.type = logger
+
+agent1.channels.channel1.type = file
+---------------------------------------------------------
+
+
+mkdir -p /opt/work/flume/source
+
+//Flume 실행
+flume-ng agent -c conf -f $FLUME_HOME/conf/flume-conf.properties -n agent1
+Revision: d4fcab4f501d41597bc616921329a4339f73585e
+Compiled by fszabo on Mon Dec 17 20:45:25 CET 2018
+From source with checksum 35db629a3bda49d23e9b3690c80737f9
