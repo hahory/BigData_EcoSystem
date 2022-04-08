@@ -165,3 +165,18 @@ hdfs namenode -format
 
 //namenode, datanode, nodemanager, secondarynamenode, yarn 데몬을 실행
 start-all.sh
+
+//테스트('hdfs dfs'가 앞에 붙은 것은 hadoop안에서 실행되는 명령어라는 의미)
+hdfs dfs -mkdir /user
+hdfs dfs -mkdir /user/root
+hdfs dfs -mkdir /user/root/conf
+
+hdfs dfs -mkdir /input
+
+hdfs dfs -copyFromLocal /opt/hadoop/README.txt /input
+
+hdfs dfs -ls /input
+
+hadoop jar /opt/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.2.jar wordcount /input/README.txt ~/wordcount-output
+
+hdfs dfs -ls ~/wordcount-output
