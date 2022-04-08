@@ -44,7 +44,7 @@ flume-ng agent -c conf -f $FLUME_HOME/conf/agent_test.properties -n agent_test
 //README.md라는 파일을 Flume의 데이터소스로 쓰기 위해 해당 디렉터리에 복사
 ### server02 터미널_2
 cd $FLUME_HOME
- cp README.md  /opt/work/flume/hadoop/readme.md
+cp README.md  /opt/work/flume/hadoop/readme.md
 
 //Flume의 데이터소스가 입력되는 순간(짧은 시간 후) Hadoop의 데이터로 넘어감
 ######성공...하면.....
