@@ -12,11 +12,15 @@ wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz --n
 tar xfz hadoop-3.3.2.tar.gz
 
 //hadoop-3.3.2를 한단계 위 디렉터리로 옮기기(/opt/src의 한단계 위 디렉터리이므로 /opt로 옮긴다는 말)
+//mv는 파일이나 디렉터리의 이름을 바꿀 때도 사용
 mv hadoop-3.3.2 ../
 //한단계 위 디렉터리 즉 /opt로 간다는 말
 cd ..
+//hadoop-3.3.2를 hadoop이라는 이름으로 심볼릭링크(바로가기)를 만듬(앞으로 hadoop이라고 쓰면 hadoop-3.3.2를 의미함)
 ln -s hadoop-3.3.2/ hadoop
 
+//export : shell변수를 환경변수로 저장
+// /etc/profile 모든 계정에 공통적으로 적용되는 환경설정을 저장
 vi /etc/profile
 -------------------------------------------------------------------
 export HADOOP_HOME=/opt/hadoop
@@ -28,6 +32,7 @@ export YARN_RESOURCEMANAGER_USER="root"
 export YARN_NODEMANAGER_USER="root"
 ----------------------------------------------------------------------
 
+//source :스크립트파일을 수정한 후에 수정된 값을 바로 적용하기 위해 사용하는 명령어(스크립트파일은 수정해도 바로 적용되는 것이 아니라 리눅스를 재시작시 적용됨)
 [root@server01 opt]# source /etc/profile
 [root@server01 opt]# hadoop version
 Hadoop 3.3.2
@@ -66,7 +71,7 @@ vi $HADOOP_HOME/etc/hadoop/hdfs-site.xml
 <configuration>
 <property>
         <name>dfs.replication</name>
-        <value>2</value>
+        <value>1</value>
 </property>
 <property>
         <name>dfs.permissions</name>
@@ -84,7 +89,8 @@ vi $HADOOP_HOME/etc/hadoop/hdfs-site.xml
 -------------------------------------------------------------------
 
 // 디렉토리 생성
-//rm은 파일은 삭제할 수 
+//rm은 파일은 삭제할 수 디렉터리는 삭제할 수 없음(디렉터리와 내용을 모두 삭제하려면 rm -r, 삭제 확인 질문이 뜨지 않게 하려면 rm -rf)
+//리눅스에서는 삭제된 파일이나 디렉터리를 복구할 수 없으므로 삭제시 매우 조심!
 rm -rf $HADOOP_HOME/namenode
 mkdir $HADOOP_HOME/namenode
 chown root -R $HADOOP_HOME/namenode
@@ -154,7 +160,8 @@ server03
 rm -rf /tmp/hadoop*
 rm -rf /opt/hadoop/logs/*
 
-// 처음.. 한번만......
+// 처음.. 한번만......(namenode를 초기화)
 hdfs namenode -format
 
+//namenode, datanode, nodemanager, secondarynamenode, yarn 데몬을 실행
 start-all.sh
