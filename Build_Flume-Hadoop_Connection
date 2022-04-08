@@ -1,0 +1,90 @@
+//Flume은 server02에 설치되어있으므로 server02에서 작업
+[root@server02 conf]# cd $FLUME_HOME/conf
+
+vi agent_test.properties
+----------------------------------------------------------------------------------
+agent_test.sources = source1
+agent_test.sinks = sink1
+agent_test.channels = channel1
+
+agent_test.sources.source1.channels = channel1
+agent_test.sinks.sink1.channel = channel1
+
+agent_test.sources.source1.type = spooldir
+agent_test.sources.source1.spoolDir = /opt/work/flume/hadoop
+agent_test.sources.source1.batchSize=1000
+
+agent_test.sinks.sink1.type = hdfs
+agent_test.sinks.sink1.hdfs.path = /tmp/flume
+agent_test.sinks.hdfs-sink.rollSize = 268435456
+agent_test.sinks.sink1.hdfs.rollInteval = 0
+agent_test.sinks.sink1.hdfs.rollCount = 0
+agent_test.sinks.sink1.hdfs.filePrefix = events
+agent_test.sinks.sink1.hdfs.fileSuffix = .log
+agent_test.sinks.sink1.hdfs.inUsePrefix = _
+agent_test.sinks.sink1.hdfs.fileType = DataStream
+
+agent_test.channels.channel1.type = file
+-----------------------------------------------------------------
+//Flume의 데이터소스가 될 데이터를 저장할 디렉터리를 생성
+#####server02에서
+mkdir -p /opt/work/flume/hadoop
+
+//Flume을 거쳐 Hadoop으로 오는 데이터가 저장될 디렉터리를 생성
+#####server02에서
+hdfs dfs -mkdir -p /tmp/flume
+
+//tmp아래 flume 디렉터리가 있는지 확인
+hdfs dfs -ls /tmp
+
+//agent_test라는 Flume agent를 하나 생성
+### server02 터미널_1
+flume-ng agent -c conf -f $FLUME_HOME/conf/agent_test.properties -n agent_test
+
+//README.md라는 파일을 Flume의 데이터소스로 쓰기 위해 해당 디렉터리에 복사
+### server02 터미널_2
+cd $FLUME_HOME
+ cp README.md  /opt/work/flume/hadoop/readme.md
+
+//Flume의 데이터소스가 입력되는 순간(짧은 시간 후) Hadoop의 데이터로 넘어감
+######성공...하면.....
+hdfs dfs -ls /tmp/flume
+위 명령어 입력하면 아래와 같이 저장된 파일들의 리스트가 보임..
+
+Found 3 items
+-rw-r--r--   1 root supergroup       1107 2022-04-08 14:41 /tmp/flume/events.1649396460098.log
+-rw-r--r--   1 root supergroup       1124 2022-04-08 14:41 /tmp/flume/events.1649396460099.log
+-rw-r--r--   1 root supergroup        252 2022-04-08 14:41 /tmp/flume/events.1649396460100.log
+
+########################################################
+#   channel 을 메모리로 변경...
+//Flume의 메모리 channel은 이벤트를 메모리 queue에 보관힘. 
+메모리 channel은 처리는 빠르지만 오류 발생시, 데이터 유실의 가능성이 있음
+(메모리 channel과 연결된 싱크에서 데이터가 쌓이는 속도보다 빠르게 데이터를 처리하지 못하는 경우-이 경우 메모리 channel의 capacity를 늘릴 수 있음) 
+########################################################
+vi $FLUME_HOME/conf/agent_test.properties
+----------------------------------------------------------------------------------
+agent_test.sources = source1
+agent_test.sinks = sink1
+agent_test.channels = channel1
+
+agent_test.sources.source1.channels = channel1
+agent_test.sinks.sink1.channel = channel1
+
+agent_test.sources.source1.type = spooldir
+agent_test.sources.source1.spoolDir = /opt/work/flume/hadoop
+
+agent_test.sinks.sink1.type = hdfs
+agent_test.sinks.sink1.hdfs.path = /tmp/flume
+agent_test.sinks.hdfs-sink.rollSize = 268435456
+agent_test.sinks.sink1.hdfs.rollInteval = 0
+agent_test.sinks.sink1.hdfs.rollCount = 0
+agent_test.sinks.sink1.hdfs.filePrefix = events
+agent_test.sinks.sink1.hdfs.fileSuffix = .log
+agent_test.sinks.sink1.hdfs.inUsePrefix = _
+agent_test.sinks.sink1.hdfs.fileType = DataStream
+
+agent_test.channels.channel1.type = memory
+agent_test.channels.channel1.capacity = 100000
+agent_test.channels.channel1.transactionCapacity=10000
+-----------------------------------------------------------------------------------
