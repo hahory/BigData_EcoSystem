@@ -4,7 +4,7 @@
 
 //-- 다운로드
 
-//모든 타사 응용 프로그램을이 /opt에 설치
+//모든 타사 응용 프로그램을 이 /opt에 설치
 cd /opt/src
 wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz --no-check-certificate
 
