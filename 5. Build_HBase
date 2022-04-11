@@ -97,3 +97,35 @@ zkServer.sh status
 3. hbase 실행....
 //hbase도 server01에서만 실행하면 됨
 start-hbase.sh
+
+----------------------------------------------------------
+//hbase 테스트
+[root@server01 bin]# hbase shell
+
+hbase:001:0> list
+
+
+hbase:002:0> create 'emps', 'personal data', 'professional data'
+// 테이블 목록 보기
+list
+TABLE
+emps
+1 row(s)
+
+// 추가 .......
+put 'emps', '1', 'personal data:name', 'yundream'
+
+put 'emps', '1', 'personal data:city', 'seoul'
+
+put 'emps', '1', 'professional data:designation', 'manager'
+
+put 'emps', '1', 'professional data:salary', '50000'
+
+// 저장된 내용 확인...
+scan 'emps'
+ROW                            COLUMN+CELL
+ 1                             column=personal data:city, timestamp=2022-04-11T10:35:42.542, value=seoul
+ 1                             column=personal data:name, timestamp=2022-04-11T10:34:39.146, value=yundream
+ 1                             column=professional data:designation, timestamp=2022-04-11T10:35:59.689, value=manager
+ 1                             column=professional data:salary, timestamp=2022-04-11T10:36:08.441, value=50000
+1 row(s)
