@@ -1,0 +1,99 @@
+//server01에서
+cd /opt/src
+wget https://dlcdn.apache.org/hbase/2.4.11/hbase-2.4.11-bin.tar.gz --no-check-certificate
+tar xfz hbase-2.4.11-bin.tar.gz -C ../
+cd /opt/
+ln -s hbase-2.4.11 hbase
+mkdir -p /opt/hbase/pids
+
+vi /etc/profile
+------------------------------------------------------------------------------
+export HBASE_HOME=/opt/hbase
+export PATH=$PATH:$HBASE_HOME/bin
+export HBASE_PID_DIR=$HBASE_HOME/pids
+-----------------------------------------------------------------------------
+source /etc/profile
+
+vi $HBASE_HOME/conf/hbase-env.sh
+------------------------------------------------------------
+28:  export JAVA_HOME=/usr/java/jdk1.8
+------------------------------------------------------------
+
+vi $HBASE_HOME/conf/hbase-site.xml
+------------------------------------------------------------------------------------------
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+        <property>
+                <name>hbase.rootdir</name>
+                <value>hdfs://server01:9000/hbase</value>
+        </property>
+        <property>
+                <name>hbase.master</name>
+                <value>hdfs://server01:9001</value>
+        </property>
+
+        <property>
+                <name>hbase.cluster.distributed</name>
+                <value>true</value>
+        </property>
+        <property>
+                <name>hbase.tmp.dir</name>
+                <value>/opt/hbase/tmp</value>
+        </property>
+         <property>
+                <name>hbase.zookeeper.property.clientPort</name>
+                <value>2181</value>
+        </property>
+        <property>
+                <name>hbase.wal.provider</name>
+                <value>filesystem</value>
+        </property>
+
+</configuration>
+---------------------------------------------------------------------------------------------------
+
+
+vi $HBASE_HOME/conf/regionservers
+--------------------------------------------------------------
+server02
+server03
+--------------------------------------------------------------
+
+
+vi $HBASE_HOME/conf/backup-masters
+--------------------------------------------------------------
+server02
+--------------------------------------------------------------
+
+//scp명령어 : secure copy의 줄임말로 ssh를 이용하여 네트워크로 연결된 호스트간에 파일을 주고받는 명령어
+//원격지에 있는 파일과 디렉터리를 보내거나 가져올 때 사용하는 파일 전송 프로토콜
+//ssh와 동일한 22번 포트와 identity file을 사용해서 파일을 송수신하기 때문에 안정된 프로토콜
+
+//server01에 설치한 프로그램 및 설정한 환경변수들을 server02, server03으로 복사
+scp -r /opt/hbase-2.4.11/ root@server02:/opt
+scp -r /opt/hbase-2.4.11/ root@server03:/opt
+
+#### server02, server03에서....
+/etc/profile  추가..
+------------------------------------------------------------------------------
+export HBASE_HOME=/opt/hbase
+export PATH=$PATH:$HBASE_HOME/bin
+export HBASE_PID_DIR=$HBASE_HOME/pids
+-----------------------------------------------------------------------------
+
+ln -s /opt/hbase-2.4.11 /opt/hbase
+
+1. 하둡 실행...
+//Hadoop은 server01에서만 실행하면 됨
+server01.....에서 start-all.sh
+
+2. 주키퍼 실행
+각 서버에서 .. 
+zkServer.sh start
+zkServer.sh status 
+	==> leader:1, follower :2
+
+3. hbase 실행....
+//hbase도 server01에서만 실행하면 됨
+start-hbase.sh
