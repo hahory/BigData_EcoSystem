@@ -1,0 +1,65 @@
+#################################################################################
+
+1. hive.apache.org 다운로드 
+저장 위치 : /opt/src 
+
+2. 압축 풀기....
+
+
+3. /etc/profile
+export HIVE_HOME=/opt/hive
+export PATH=$PATH:$HIVE_HOME/bin
+
+
+4..   한경 설정....
+cp hive-env.sh.template hive-env.sh
+
+
+vi hive-env.sh
+HADOOP_HOME=/opt/hadoop/
+
+vi hive-site.xml
+-------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+       <name>hive.metastore.warehouse.dir</name>
+       <value>/user/hive/warehouse</value>
+  </property>
+  <property>
+       <name>hive.cli.print.header</name>
+       <value>true</value>
+  </property>
+</configuration>
+-------------------------------------------------------------------------------------
+
+hdfs dfs -mkdir -p /user/hive/warehouse
+hdfs dfs -ls -R /user/hive
+
+쓰기 권한 추가 및 확인
+hdfs dfs -chmod g+w /user/hive/warehouse
+hdfs dfs -ls -R /user/hive
+
+
+schematool 띄우기
+
+schematool -dbType derby -initSchema
+
+hive
+
+CREATE DATABASE test;
+CREATE DATABASE if not exists test;
+
+
+show databases;
+
+use test;
+drop database if exists test CASCADE
+
+create table if not exists test.test_table (
+  id	INT COMMENT 'person id'
+  name	StRING COMMENT 'person name'
+)
+TBLPROPERTIES ('creator'='me', 'created_at'='2022-04-11')
+LOCATION '/directory'
