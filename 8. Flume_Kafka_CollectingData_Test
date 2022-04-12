@@ -1,0 +1,28 @@
+page 133.....................
+
+0. 사전 작업
+kafka-topics.sh --create --zookeeper server02.hadoop.com:2181 --replication-factor 1 --partitions 1 --topic SmartCar-Topic
+
+// 목록보기
+kafka-topics.sh --list --bootstrap-server server02.hadoop.com:9092
+
+1. 실행 순서
+ - kafka 서버 실행....
+kafka-server-start.sh $KAFKA_HOME/config/server.properties
+- 컨슈머
+kafka-console-consumer.sh --bootstrap-server server02.hadoop.com:9092 --topic SmartCar-Topic --partition 0 --from-beginning
+
+- 플럼
+flume-ng agent -c conf -f $FLUME_HOME/conf/SmartCar_Agent.properties -n SmartCar_Agent
+
+로그 시뮬레이터
+// 실시간 데이터...
+java -cp bigdata.smartcar.loggen-1.0.jar com.wikibook.bigdata.smartcar.loggen.DriverLogMain 20220412 10
+
+
+2. 종료 
+ - flume 종료
+ - 실시간 데이터 종료
+ - 컨슈머 종료
+ - 카프카 종료
+kafka-server-stop.sh $KAFKA_HOME/config/server.properties
