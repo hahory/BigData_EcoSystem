@@ -1,3 +1,30 @@
+99 페이지 하단
+
+프로젝트 디렉토리 생성...
+
+server02에서만..
+==================================
+cd /home
+mkdir pilot-pjt
+mkdir pilot-pjt/working
+mkdir pilot-pjt/working/car-batch-log
+mkdir pilot-pjt/working/driver-realtime-log
+chmod 777 -R /home/pilot-pjt/
+
+예제 파일 ch02
+bigdata.smartcar.loggen-1.0.jar
+/home/pilot-pjt/working 에 업로드....(winSCP이용해서 업로드함)
+-----------------------------------------------------------
+cd /home/pilot-pjt/working
+
+//로그 시뮬레이터를 백그라운드 방식으로 실행
+// 실시간 데이터
+java -cp bigdata.smartcar.loggen-1.0.jar com.wikibook.bigdata.smartcar.loggen.DriverLogMain 20220412 10
+
+// 자동차 상태정보(배치파일)
+java -cp bigdata.smartcar.loggen-1.0.jar com.wikibook.bigdata.smartcar.loggen.CarLogMain 20220412 10
+
+
 page 133.....................
 
 0. 사전 작업
